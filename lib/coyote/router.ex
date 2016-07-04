@@ -32,7 +32,7 @@ defmodule Coyote.Router do
 
   def mod_specs([], acc), do: acc
   def mod_specs([module|rest], acc \\ []) do
-    case module.__info__(:functions) |> IO.inspect |> Keyword.has_key?(:__child_spec__) do
+    case module.__info__(:functions) |> Keyword.has_key?(:__child_spec__) do
       true ->
         acc = module.__child_spec__ ++ acc
       _ ->
@@ -44,7 +44,7 @@ defmodule Coyote.Router do
   defmacro routes(do: routes) do
     quote do
       def __routes__() do
-        unquote(routes) |> IO.inspect
+        unquote(routes)
       end
     end
   end

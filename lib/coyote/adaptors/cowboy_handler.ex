@@ -12,9 +12,27 @@ defmodule Coyote.Adaptors.Cowboy.Handler do
     start = current_time()
     method = request_method(req)
 
-    GenServer.call(mod, {method, req})
+    {bindings, _req} = Request.bindings(req)
+    {query_string, _req} = Request.qs(req)
+
+    {status, headers, output} = GenServer.call(mod, {method, bindings})
+
+    Request.reply(status, headers, output, req)
 
     stop = current_time()
+
+    IO.inspect "Request qs"
+    IO.inspect Request.qs(req)
+    IO.inspect "Request qs vals"
+    IO.inspect Request.qs_vals(req)
+    IO.inspect "Request bindings"
+    IO.inspect Request.bindings(req)
+    IO.inspect "Request body"
+    IO.inspect Request.body(req)
+    IO.inspect "Request path"
+    IO.inspect Request.path(req)
+    IO.inspect "Request headers"
+    IO.inspect Request.headers(req)
 
     Logger.log :info, fn ->
       diff = time_diff(start, stop)

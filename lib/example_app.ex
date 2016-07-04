@@ -5,7 +5,9 @@ defmodule MyApp.Supervisor do
   routes do
     [
       {"/", MyApp.Home},
-      {"/company", MyApp.Company}
+      {"/company", MyApp.Company},
+      {"/company/:id", MyApp.Company},
+      {"/company/:id/edit", MyApp.Company}
     ]
   end
 
@@ -34,10 +36,10 @@ defmodule MyApp.Home do
   def init(_opts),
     do: {:ok, nil}
 
-  def handle_call({:get, req}, _from, state) do
-    Request.reply(200, [{"content-type", "text/html"}], "Hello World", req)
-    {:reply, [], state}
+  def handle_call({:get, []}, _from, state) do
+    {:reply, {200, [{"content-type", "text/html"}], "Hello World"}, state}
   end
+
 end
 
 defmodule MyApp.Company do
@@ -51,8 +53,11 @@ defmodule MyApp.Company do
   def init(_opts),
     do: {:ok, nil}
 
-  def handle_call({:get, req}, _from, state) do
-    Request.reply(200, [{"content-type", "text/html"}], "Hello World from the company", req)
-    {:reply, [], state}
+  def handle_call({:get, []}, _from, state) do
+    {:reply, {200, [{"content-type", "text/html"}], "Hello World from the company"}, state}
+  end
+
+  def handle_call({:get, [id: id]}, _from, state) do
+    {:reply, {200, [{"content-type", "text/html"}], "Hello World from the company #{id}"}, state}
   end
 end
