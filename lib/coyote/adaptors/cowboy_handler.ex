@@ -10,12 +10,9 @@ defmodule Coyote.Adaptors.Cowboy.Handler do
 
   def handle(req, [mod]) do
     start = current_time()
-
-    {:ok, pid} = start_request_worker(mod, req)
-
     method = request_method(req)
 
-    GenServer.call(pid, {:process_reply, method})
+    GenServer.call(mod, {method, req})
 
     stop = current_time()
 
@@ -26,7 +23,7 @@ defmodule Coyote.Adaptors.Cowboy.Handler do
         " in ", formatted_diff(diff)]
     end
 
-    {:ok, req, [worker: pid]}
+    {:ok, req, []}
   end
 
   defp start_request_worker(mod, req),
@@ -48,8 +45,7 @@ defmodule Coyote.Adaptors.Cowboy.Handler do
   defp formatted_diff(diff),
     do: [diff |> Integer.to_string, "µs"]
 
-  def terminate(reason, _request, [worker: pid]) do
-    GenServer.stop(pid)
+  def terminate(reason, _request, []) do
     :ok
   end
 end

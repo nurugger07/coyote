@@ -3,22 +3,18 @@ defmodule Coyote do
 
   alias Coyote.Adaptors.Cowboy.Spec
 
-  # See http://elixir-lang.org/docs/stable/elixir/Application.html
-  # for more information on OTP Applications
   def start(_type, _args) do
     import Supervisor.Spec, warn: false
 
     routes = Coyote.Router.collect_routes |> build_routes
+    specs = Coyote.Router.collect_supervisors
 
     children = [
       supervisor(Coyote.Adaptors.Cowboy.Supervisor, [%Spec{routes: routes}]),
-      supervisor(Coyote.Request.Supervisor, [])
     ]
 
-    # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
-    # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Coyote.Supervisor]
-    Supervisor.start_link(children, opts)
+    Supervisor.start_link(children ++ specs, opts)
   end
 
   defp build_routes([]), do: []

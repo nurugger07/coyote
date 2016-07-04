@@ -3,6 +3,9 @@ defmodule Coyote.Router do
   def collect_routes,
     do: modules |> mod_routes
 
+  def collect_supervisors,
+    do: modules |> mod_specs
+
   def modules do
     Mix.Project.compile_path
     |> Path.join("*.beam")
@@ -27,6 +30,17 @@ defmodule Coyote.Router do
     mod_routes(rest, acc)
   end
 
+  def mod_specs([], acc), do: acc
+  def mod_specs([module|rest], acc \\ []) do
+    case module.__info__(:functions) |> IO.inspect |> Keyword.has_key?(:__child_spec__) do
+      true ->
+        acc = module.__child_spec__ ++ acc
+      _ ->
+        []
+    end
+    mod_specs(rest, acc)
+  end
+
   defmacro routes(do: routes) do
     quote do
       def __routes__() do
@@ -36,12 +50,12 @@ defmodule Coyote.Router do
   end
 
   defmacro __using__(_opts) do
-    quote location: :keep do
+    quote do
+      import Coyote.Router, [only: [routes: 1]]
 
-      require unquote(__MODULE__)
-
-      import unquote(__MODULE__)
-
+      def __child_spec__() do
+        [Supervisor.Spec.supervisor(__MODULE__, [])]
+      end
     end
   end
 

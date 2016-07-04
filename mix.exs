@@ -11,8 +11,7 @@ defmodule Coyote.Mixfile do
   end
 
   def application do
-    [applications: [:logger, :cowboy],
-     mod: {Coyote, []}]
+    [applications: [:logger, :cowboy]]
   end
 
   defp deps do
