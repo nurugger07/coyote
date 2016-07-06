@@ -3,36 +3,26 @@ defmodule Coyote.Adaptors.Cowboy.Handler do
 
   require Logger
 
-  # The gen_server to route the request to is provided here
-  def init(transport, req, [mod]) do
-    {:ok, req, [mod]}
-  end
+  def init(transport, req, [%Coyote.RouteInfo{} = info]),
+    do: {:ok, req, [info]}
 
-  def handle(req, [mod]) do
+  def handle(req, [info]) do
     start = current_time()
     method = request_method(req)
+
+    # check method against the defined route method
+    # can't handle "not found" here
 
     {bindings, _req} = Request.bindings(req)
     {query_string, _req} = Request.qs(req)
 
-    {status, headers, output} = GenServer.call(mod, {method, bindings})
+    {:ok, pid} = start_request_worker(info.module, req)
+
+    {status, headers, output} = Coyote.RequestWorker.process(pid, method, bindings)
 
     Request.reply(status, headers, output, req)
 
     stop = current_time()
-
-    IO.inspect "Request qs"
-    IO.inspect Request.qs(req)
-    IO.inspect "Request qs vals"
-    IO.inspect Request.qs_vals(req)
-    IO.inspect "Request bindings"
-    IO.inspect Request.bindings(req)
-    IO.inspect "Request body"
-    IO.inspect Request.body(req)
-    IO.inspect "Request path"
-    IO.inspect Request.path(req)
-    IO.inspect "Request headers"
-    IO.inspect Request.headers(req)
 
     Logger.log :info, fn ->
       diff = time_diff(start, stop)
@@ -41,11 +31,11 @@ defmodule Coyote.Adaptors.Cowboy.Handler do
         " in ", formatted_diff(diff)]
     end
 
-    {:ok, req, []}
+    {:ok, req, [worker: pid]}
   end
 
   defp start_request_worker(mod, req),
-    do: Coyote.Request.Supervisor.start_child(mod, req)
+    do: Coyote.Controller.Supervisor.start_child(mod, req)
 
   defp request_method(req),
     do: Request.method(req) |> method_to_atom
@@ -63,7 +53,8 @@ defmodule Coyote.Adaptors.Cowboy.Handler do
   defp formatted_diff(diff),
     do: [diff |> Integer.to_string, "µs"]
 
-  def terminate(reason, _request, []) do
+  def terminate(reason, _request, [worker: pid]) do
+    GenServer.stop(pid)
     :ok
   end
 end

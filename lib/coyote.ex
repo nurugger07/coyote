@@ -6,19 +6,32 @@ defmodule Coyote do
   def start(_type, _args) do
     import Supervisor.Spec, warn: false
 
-    routes = Coyote.Router.collect_routes |> build_routes
-    specs = Coyote.Router.collect_supervisors
+    routes = Coyote.Router.collect_routes |> compile_routes
 
     children = [
       supervisor(Coyote.Adaptors.Cowboy.Supervisor, [%Spec{routes: routes}]),
+      supervisor(Coyote.Controller.Supervisor, []),
     ]
 
     opts = [strategy: :one_for_one, name: Coyote.Supervisor]
-    Supervisor.start_link(children ++ specs, opts)
+    Supervisor.start_link(children, opts)
   end
 
-  defp build_routes([]), do: []
-  defp build_routes([{route, mod}|rest]) do
-    [{route, Coyote.Adaptors.Cowboy.Handler, [mod]}| build_routes(rest)]
+  defp compile_routes([]), do: []
+  defp compile_routes([{method, route, mod}|rest]),
+    do: [route({method, route, mod, nil})|compile_routes(rest)]
+  defp compile_routes([{method, route, mod, action}|rest]),
+    do: [route({method, route, mod, action})|compile_routes(rest)]
+  defp compile_routes([invalid_route|_rest]),
+    do: raise "Invaild route definition"
+
+  defp route({method, route, mod, action}) when method in [:GET, :POST, :PUT, :PATCH, :DELETE, :OPTION] do
+    {route,
+      Coyote.Adaptors.Cowboy.Handler,
+      [%Coyote.RouteInfo{method: method, module: mod, action: action, route: route}]}
   end
+
+  def build_route(_route_info),
+    do: raise "Invaild HTTP method in route"
+
 end
