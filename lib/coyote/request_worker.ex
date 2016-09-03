@@ -18,10 +18,15 @@ defmodule Coyote.RequestWorker do
       {:noreply, [mod, req, pid]}
     end
 
-    def process(pid, method, bindings),
-      do: GenServer.call(pid, {:process_reply, method})
+    def process(pid, :POST, path, %{_method: method} = bindings) when method in ["put", "patch","delete"] do
+      method = String.downcase(method) |> String.to_atom
+      GenServer.call(pid, {:process_reply, {method, path, bindings}})
+    end
 
-    def handle_call({:process_reply, method}, _from, [mod, _req, pid] = state) do
+    def process(pid, method, path, bindings),
+      do: GenServer.call(pid, {:process_reply, {method, path, bindings}})
+
+    def handle_call({:process_reply, method}, _from, [mod, req, pid] = state) do
       {status, headers, output} = GenServer.call(pid, method)
 
       {:reply, {status, headers, output}, state}

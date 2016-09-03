@@ -10,15 +10,25 @@ defmodule Coyote.Adaptors.Cowboy.Handler do
     start = current_time()
     method = request_method(req)
 
-    # check method against the defined route method
-    # can't handle "not found" here
-
     {bindings, _req} = Request.bindings(req)
-    {query_string, _req} = Request.qs(req)
+    {path, _req} = Request.path(req)
+    {headers, _req} = Request.headers(req)
+    {query_string, _req} = Request.qs_vals(req)
+
+    {:ok, body, _req} = Request.body_qs(req)
+
+    bindings = body
+    |> Enum.into(query_string)
+    |> Enum.map(fn({key, val}) ->
+      {String.to_atom(key), val}
+    end)
+    |> Enum.into(bindings)
+    |> Enum.into(%{})
+
 
     {:ok, pid} = start_request_worker(info.module, req)
 
-    {status, headers, output} = Coyote.RequestWorker.process(pid, method, bindings)
+    {status, headers, output} = Coyote.RequestWorker.process(pid, method, path, bindings)
 
     Request.reply(status, headers, output, req)
 

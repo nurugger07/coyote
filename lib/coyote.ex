@@ -22,7 +22,7 @@ defmodule Coyote do
     do: [route({method, route, mod, nil})|compile_routes(rest)]
   defp compile_routes([{method, route, mod, action}|rest]),
     do: [route({method, route, mod, action})|compile_routes(rest)]
-  defp compile_routes([invalid_route|_rest]),
+  defp compile_routes([_invalid_route|_rest]),
     do: raise "Invaild route definition"
 
   defp route({method, route, mod, action}) when method in [:GET, :POST, :PUT, :PATCH, :DELETE, :OPTION] do

@@ -20,12 +20,28 @@ defmodule Coyote.Adaptors.Cowboy do
   def child_spec(scheme \\ :http, routes, [], opts \\ [port: 4000, acceptors: 100]),
     do: Supervisor.Spec.worker(__MODULE__, [%Spec{scheme: scheme, routes: routes, opts: opts}])
 
-  def handle_info({:start_cowboy, args}, state) do
+  def update_routes(routes) do
+    GenServer.cast(__MODULE__, {:update_routes, routes})
+  end
+
+  def handle_info({:start_cowboy, args}, _state) do
     dispatch = :cowboy_router.compile([
-      {:_, args.routes},
+      {:_, [{"/static/[...]", :cowboy_static, {:priv_dir, :coyote, "assets"}} | args.routes]}
     ])
 
     :cowboy.start_http(args.scheme, args.opts[:acceptors], [port: args.opts[:port]], [{:env, [{:dispatch, dispatch}]}])
+
+    {:noreply, args}
+  end
+
+  def handle_cast({:update_routes, routes}, state) do
+    routes = routes ++ state.routes
+
+    dispatch = :cowboy_router.compile([
+      {:_, [{"/static/[...]", :cowboy_static, {:priv_dir, :coyote, "assets"}} | routes]}
+    ])
+
+    :cowboy.set_env(state.scheme, :dispatch, dispatch)
 
     {:noreply, state}
   end
