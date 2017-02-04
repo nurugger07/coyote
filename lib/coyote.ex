@@ -1,0 +1,2 @@
+defmodule Coyote do
+end
