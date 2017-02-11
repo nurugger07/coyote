@@ -1,40 +1,34 @@
 defmodule Coyote.Mixfile do
   use Mix.Project
 
+  @version "0.1.0"
+
   def project do
-    [app: :coyote,
-     version: "0.1.0",
-     build_path: "../../_build",
-     config_path: "../../config/config.exs",
-     deps_path: "../../deps",
-     lockfile: "../../mix.lock",
-     elixir: "~> 1.3",
-     build_embedded: Mix.env == :prod,
-     start_permanent: Mix.env == :prod,
-     deps: deps]
+    [
+      app: :coyote,
+      name: "Coyote",
+      version: @version,
+      elixir: "~> 1.3",
+      deps: deps(),
+      package: package()
+    ]
   end
 
-  # Configuration for the OTP application
-  #
-  # Type "mix help compile.app" for more information
   def application do
-    [applications: [:logger]]
+    [applications: [:logger, :cowboy, :mime],
+     mod: {Coyote, []}]
   end
 
-  # Dependencies can be Hex packages:
-  #
-  #   {:mydep, "~> 0.3.0"}
-  #
-  # Or git/path repositories:
-  #
-  #   {:mydep, git: "https://github.com/elixir-lang/mydep.git", tag: "0.1.0"}
-  #
-  # To depend on another app inside the umbrella:
-  #
-  #   {:myapp, in_umbrella: true}
-  #
-  # Type "mix help deps" for more examples and options
   defp deps do
-    []
+    [
+      {:mime, "~> 1.0"},
+      {:cowboy, "~> 1.1"}
+    ]
+  end
+
+  defp package do
+    %{licenses: ["Apache 2"],
+      maintainers: ["Johnny Winn"],
+      links: %{"GitHub" => "https://github.com/nurugger07/coyote"}}
   end
 end
