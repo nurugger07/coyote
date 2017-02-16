@@ -10,7 +10,8 @@ defmodule Coyote.Mixfile do
       version: @version,
       elixir: "~> 1.3",
       deps: deps(),
-      package: package()
+      package: package(),
+      elixirc_paths: elixirc_paths(Mix.env),
     ]
   end
 
@@ -18,6 +19,9 @@ defmodule Coyote.Mixfile do
     [applications: [:logger, :cowboy, :mime],
      mod: {Coyote, []}]
   end
+
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(_),     do: ["lib"]
 
   defp deps do
     [
