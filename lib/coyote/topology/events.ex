@@ -13,14 +13,14 @@ defmodule Coyote.Topology.Events do
   def init(opts),
     do: {:ok, opts}
 
-  def handle_info({:remove_node_routes, node}, state) do
+  def handle_info({:remove_node_from_topology, node}, state) do
     state.topology
     |> route_table
     |> send({:delete!, node})
     {:noreply, state}
   end
 
-  def handle_info({:remove_process_routes, pid}, state) do
+  def handle_info({:remove_process_from_topology, pid}, state) do
     state.topology
     |> route_table
     |> send({:delete!, pid})
@@ -36,7 +36,7 @@ defmodule Coyote.Topology.Events do
   end
 
   def handle_info(unknown, state) do
-    Logger.warn("Unknown message: #{inspect unknown}")
+    Logger.warn("Unknown message to Coyote.Topology.Events: #{inspect unknown}")
     {:noreply, state}
   end
 

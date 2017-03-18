@@ -8,8 +8,11 @@ defmodule Coyote.Supervisor do
 
   def init([]) do
     children = [
-      supervisor(Coyote.Topology.Supervisor, [])
+      supervisor(Coyote.Topology.Supervisor, []),
+      worker(Coyote.Route.Events, []),
+      worker(Coyote.Server, [])
     ]
+
     supervise(children, strategy: :one_for_one)
   end
 end

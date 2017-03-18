@@ -17,21 +17,21 @@ defmodule Coyote.Topology.Monitor do
   def monitor_node(topology, node) do
     topology
     |> monitor_name()
-    |> GenServer.cast({:monitor_node, node})
+    |> send({:monitor_node, node})
   end
 
   def monitor_process(topology, pid) do
     topology
     |> monitor_name()
-    |> GenServer.cast({:monitor_process, pid})
+    |> send({:monitor_process, pid})
   end
 
-  def handle_cast({:monitor_node, node}, state) do
+  def handle_info({:monitor_node, node}, state) do
     Node.monitor(node, true)
     {:noreply, state}
   end
 
-  def handle_cast({:monitor_process, pid}, state) do
+  def handle_info({:monitor_process, pid}, state) do
     Process.monitor(pid)
     {:noreply, state}
   end

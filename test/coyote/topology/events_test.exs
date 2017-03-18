@@ -18,12 +18,12 @@ defmodule Coyote.Topology.EventsTest do
   end
 
   test "sending message to remove routes forwards to routes table", %{event_manager: events} do
-    send(events, {:remove_node_routes, :node_name})
+    send(events, {:remove_node_from_topology, :node_name})
     assert_receive {:delete!, :node_name}
 
     pid = self()
 
-    send(events, {:remove_process_routes, pid})
+    send(events, {:remove_process_from_topology, pid})
     assert_receive {:delete!, ^pid}
   end
 
@@ -40,7 +40,7 @@ defmodule Coyote.Topology.EventsTest do
       :timer.sleep(100)
     end
 
-    assert capture_log(message) =~ "Unknown message: {:unknown_message, \"foo\"}"
+    assert capture_log(message) =~ "Unknown message to Coyote.Topology.Events: {:unknown_message, \"foo\"}"
   end
 
 end

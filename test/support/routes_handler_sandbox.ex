@@ -8,19 +8,25 @@ defmodule Coyote.RouteHandler.Sandbox do
   def init(_args),
     do: {:ok, []}
 
-  def update_routing_table(routes, mod, node) do
-    GenServer.cast(:test_routes, {:update, {routes, mod, node}})
+  def update_routing_table(routes, mod, node, topology \\ :default) do
+    GenServer.cast(:test_routes, {:update, {routes, topology, mod, node}})
   end
 
-  def find_route(req) do
-    GenServer.call(:test_routes, {:find_route, req})
+  def find_route(req, topology \\ :default) do
+    GenServer.call(:test_routes, {:find_route, req, topology})
   end
 
-  def handle_call({:find_route, {req, path}}, _from, state) do
-    {:reply, Enum.find(state, &(&1.route == {req, path})), state}
+  def handle_call({:find_route, {req, path}, _topology}, _from, state) do
+    response = case Enum.find(state, &(&1.route == {req, path})) do
+                 nil ->
+                   {:error, "No matching routes"}
+                 route ->
+                   {:ok, route}
+               end
+    {:reply, response, state}
   end
 
-  def handle_cast({:update, {routes, mod, node}}, _state) do
+  def handle_cast({:update, {routes, _topology, mod, node}}, _state) do
     {:noreply, build_routes(routes, mod, node, [])}
   end
 

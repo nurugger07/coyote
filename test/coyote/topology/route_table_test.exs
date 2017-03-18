@@ -77,7 +77,7 @@ defmodule Coyote.Topology.RouteTableTest do
   end
 
   defp register_routes(topology, routes) do
-    assert :ok = RouteTable.register(topology, routes)
+    RouteTable.register(topology, routes)
     :timer.sleep(1)
   end
 

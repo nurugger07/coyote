@@ -16,7 +16,7 @@ defmodule Coyote.Topology.RouteTable do
   def register(topology, routes) do
     topology
     |> route_table_name()
-    |> GenServer.cast({:register, routes})
+    |> send({:register, routes})
   end
 
   def all(topology) do
@@ -34,7 +34,8 @@ defmodule Coyote.Topology.RouteTable do
   def delete!(topology, key) do
     topology
     |> route_table_name()
-    |> GenServer.cast({:delete!, key})
+    |> send({:delete!, key})
+    :ok
   end
 
   def handle_info(:configure, %{topology: topology} = state) when is_atom(topology) do
@@ -43,14 +44,35 @@ defmodule Coyote.Topology.RouteTable do
     {:noreply, state}
   end
 
-  def handle_cast({:register, routes}, state) when is_list(routes) do
+  def handle_info({:delete!, key}, %{topology: topology} = state) when is_pid(key) do
+    :ets.match(topology, {:"$1", key, :"_", :"_"})
+    |> Enum.each(fn([key]) ->
+      :ets.delete(topology, key)
+    end)
+    {:noreply, state}
+  end
+
+  def handle_info({:delete!, key}, %{topology: topology} = state) when is_tuple(key) do
+    :ets.delete(topology, key)
+    {:noreply, state}
+  end
+
+  def handle_info({:delete!, node}, %{topology: topology} = state) do
+    :ets.match(topology, {:"$1", :"_", node, :"_"})
+    |> Enum.each(fn([key]) ->
+      :ets.delete(topology, key)
+    end)
+    {:noreply, state}
+  end
+
+  def handle_info({:register, routes}, state) when is_list(routes) do
     for route <- routes,
-      do: GenServer.cast(self(), {:register, route})
+      do: send(self(), {:register, route})
 
     {:noreply, state}
   end
 
-  def handle_cast({:register, route}, %{topology: topology} = state) do
+  def handle_info({:register, route}, %{topology: topology} = state) do
     :ets.insert(topology, {route.route, route.pid, route.node, route})
 
     send_topology_event(topology, {:begin_monitor, route})
@@ -77,29 +99,11 @@ defmodule Coyote.Topology.RouteTable do
     {:reply, result, state}
   end
 
-  def handle_cast({:delete!, key}, %{topology: topology} = state) when is_pid(key) do
-    :ets.match(topology, {:"$1", key, :"_", :"_"})
-    |> Enum.each(fn([key]) ->
-      :ets.delete(topology, key)
-    end)
-    {:noreply, state}
-  end
-
-  def handle_cast({:delete!, key}, %{topology: topology} = state) when is_tuple(key) do
-    :ets.delete(topology, key)
-    {:noreply, state}
-  end
-
-  def handle_cast({:delete!, node}, %{topology: topology} = state) do
-    :ets.match(topology, {:"$1", :"_", node, :"_"})
-    |> Enum.each(fn([key]) ->
-      :ets.delete(topology, key)
-    end)
-    {:noreply, state}
-  end
-
   defp send_topology_event(topology, event),
     do: events(topology) |> send(event)
+
+  defp route_table_name(topology) when is_pid(topology),
+    do: topology
 
   defp route_table_name(topology),
     do: :"#{topology}-route-table"
