@@ -14,6 +14,7 @@ defmodule Coyote.Server do
     do: {:ok, []}
 
   def handle_info({:register, {mod, binary, file, func, topology, node}}, _state) do
+    Logger.info("Registering routes for #{topology} topology")
     {:module, mod} = :code.load_binary(mod, file, binary)
 
     route_bridge.update_routing_table(func.(), mod, node, topology)
