@@ -6,9 +6,8 @@ defmodule Coyote.RouteBridge do
   alias Coyote.Topology.Route
 
   def update_routing_table(routes, mod, node, topology \\ :default) do
-
     routes = compile_routes(routes, mod, node)
-    {:ok, pid} = Coyote.Topology.Supervisor.new_topology(topology)
+    {:ok, _pid} = Coyote.Topology.Supervisor.new_topology(topology)
 
     route_table.register(topology, routes)
 

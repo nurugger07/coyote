@@ -3,7 +3,7 @@ defmodule Coyote.Route.Events do
 
   require Logger
 
-  @web_enabled Application.get_env(:coyote, :use_cowboy, true)
+  @web_enabled Application.get_env(:coyote, :use_web_adaptor, true)
   @adaptor Coyote.Adaptors.Cowboy
   @route_table Coyote.Topology.RouteTable
 
@@ -12,12 +12,14 @@ defmodule Coyote.Route.Events do
 
   def handle_info({message, topology}, _state) do
     if @web_enabled do
-      # routes = topology
-      # |> route_table.all
-      # |> Enum.map(fn(route) ->
-      #   route.route
-      # end)
-      # send(adaptor, {:compile_routes, routes})
+      routes = topology
+      |> route_table.all
+      |> Enum.map(fn(route) ->
+        {method, path} = route.route
+        {method, path, route.module}
+      end)
+
+      send(adaptor, {:compile_routes, routes})
     end
     {:noreply, []}
   end
