@@ -13,7 +13,7 @@ defmodule Coyote.Client do
       @server unquote(opts[:leader]) || Coyote
 
       @name __MODULE__
-      @node Application.get_env(:coyote, :leader_node, :nonode@nohost)
+      @nodes Application.get_env(:coyote, :leader_node, [:nonode@nohost])
       @topology Application.get_env(:coyote, :topology, :default)
 
       def start_link,
@@ -29,9 +29,11 @@ defmodule Coyote.Client do
 
         route_func = Application.get_env(:coyote, :routes, &mod.__routes__/0)
 
-        send({@server, @node}, {:register, {mod, binary, file, route_func, @topology, {self(), Node.self()}}})
+        Enum.each(@nodes, fn(node) ->
+          send({@server, node}, {:register, {mod, binary, file, route_func, @topology, {self(), Node.self()}}})
 
-        Process.monitor({@server, @node})
+          Process.monitor({@server, node})
+        end)
 
         {:noreply, state}
       end
