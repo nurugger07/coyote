@@ -55,8 +55,8 @@ defmodule Coyote.Server do
         case GenServer.call(pid, {method, path, args}) do
           {:error, _message} ->
             {:error, "Routing error"}
-          {:ok, response} = reply ->
-            reply
+          {:ok, _response} = response ->
+            response
           response ->
             {:ok, response}
         end
