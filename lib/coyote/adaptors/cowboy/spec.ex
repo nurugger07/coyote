@@ -6,6 +6,6 @@ defmodule Coyote.Adaptors.Cowboy.Spec do
 
   defstruct scheme: :http,
     routes: [],
-    opts: [port: 4000, acceptors: 100]
+    opts: [port: 4001, acceptors: 100]
 
 end

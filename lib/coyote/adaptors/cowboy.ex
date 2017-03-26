@@ -9,7 +9,7 @@ defmodule Coyote.Adaptors.Cowboy do
   alias Coyote.Adaptors.Cowboy.RouteInfo
 
   @schema Application.get_env(:coyote, :schema, :http)
-  @port Application.get_env(:coyote, :port, 4000)
+  @port Application.get_env(:coyote, :port, 4001)
   @acceptors Application.get_env(:coyote, :acceptors, 100)
 
   def start_link(args),
