@@ -2,7 +2,9 @@ defmodule Coyote.Topology.RouteTable do
   use GenServer
 
   @moduledoc """
+
   Store route information for connected applications
+
   """
 
   def start_link(%{topology: topology} = opts),

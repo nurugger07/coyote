@@ -1,6 +1,10 @@
 defmodule Coyote.Route.Events do
   use GenServer
 
+  @moduledoc """
+
+  """
+
   require Logger
 
   @web_enabled Application.get_env(:coyote, :use_web_adaptor, true)

@@ -2,7 +2,9 @@ defmodule Coyote.Topology.Events do
   use GenServer
 
   @moduledoc """
+
   Handle events for topology
+
   """
 
   require Logger

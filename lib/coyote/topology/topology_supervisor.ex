@@ -2,7 +2,9 @@ defmodule Coyote.Topology.Supervisor do
   use Supervisor
 
   @moduledoc """
+
   Supervise multiple topologies
+
   """
 
   @supervisor Coyote.Topology.Supervisor

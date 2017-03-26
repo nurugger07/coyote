@@ -1,5 +1,9 @@
 defmodule Coyote.Utility.ResponseLogger do
 
+  @moduledoc """
+
+  """
+
   defmacro timed_task(do: block) do
     quote do
       require Logger

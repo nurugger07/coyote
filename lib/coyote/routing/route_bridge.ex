@@ -1,5 +1,9 @@
 defmodule Coyote.RouteBridge do
 
+  @moduledoc """
+
+  """
+
   @route_table Coyote.Topology.RouteTable
   @events Coyote.Route.Events
 

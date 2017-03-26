@@ -1,5 +1,9 @@
 defmodule Coyote.Router do
 
+  @moduledoc """
+
+  """
+
   defmacro routes(do: routes) do
     quote do
       def __routes__() do

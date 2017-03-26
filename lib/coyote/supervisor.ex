@@ -1,6 +1,10 @@
 defmodule Coyote.Supervisor do
   use Supervisor
 
+  @moduledoc """
+
+  """
+
   @supervisor Coyote.Supervisor
   @web_enabled Application.get_env(:coyote, :use_web_adaptor, true)
   @adaptor_supervisor Coyote.Adaptors.Cowboy.Supervisor

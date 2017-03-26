@@ -1,6 +1,10 @@
 defmodule Coyote.Server do
   use GenServer
 
+  @moduledoc """
+
+  """
+
   alias Coyote.Topology.Route
 
   @bridge Coyote.RouteBridge

@@ -1,6 +1,10 @@
 defmodule Coyote do
   use Application
 
+  @moduledoc """
+
+  """
+
   def start(:normal, []),
     do: start_link
 
