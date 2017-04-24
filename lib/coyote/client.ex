@@ -38,18 +38,18 @@ defmodule Coyote.Client do
         {:noreply, state}
       end
 
-      def handle_info(:watch_leader, state) do
-        case Node.ping(@node) do
+      def handle_info({:watch_leader, node}, state) do
+        case Node.ping(node) do
           :pong ->
             send(self, :register_routes)
           :pang ->
-            send(self, :watch_leader)
+            send(self, {:watch_leader, node})
         end
         {:noreply, state}
       end
 
       def handle_info({:DOWN, _ref, :process, {Coyote, node}, _reason}, state) do
-        send(self, :watch_leader)
+        send(self, {:watch_leader, node})
         {:noreply, state}
       end
 
@@ -86,10 +86,8 @@ defmodule Coyote.Client do
       def call(req, from, state),
         do: {:error, "No override provided for call/3"}
 
-      def cast(req, state) do
-        IO.inspect req
-        {:error, "No override provided for cast/2"}
-      end
+      def cast(req, state),
+        do: {:error, "No override provided for cast/2"}
 
       def info(req, state),
         do: {:error, "No override provided for info/2"}
