@@ -6,15 +6,21 @@ defmodule Coyote do
   """
 
   def start(:normal, []),
-    do: start_link
+    do: start_link()
 
   def start_link,
-    do: Coyote.Supervisor.start_link
+    do: Coyote.Supervisor.start_link()
 
   # PUBLIC API
 
-  def call(request),
-    do: GenServer.call(Coyote, request)
+  def call(request) do
+    GenServer.call(Coyote, request)
+
+    receive do
+      response ->
+        response
+    end
+  end
 
   def cast(request),
     do: GenServer.cast(Coyote, request)

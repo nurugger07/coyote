@@ -11,7 +11,7 @@ defmodule Coyote.Topology.RouteTable do
     do: GenServer.start_link(__MODULE__, opts, name: route_table_name(topology))
 
   def init(opts) do
-    send(self, :configure)
+    send(self(), :configure)
     {:ok, opts}
   end
 

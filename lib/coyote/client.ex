@@ -2,6 +2,9 @@ defmodule Coyote.Client do
 
   @moduledoc """
 
+  The Coyote client module. Used to register application processes with Coyote
+  servers.
+
   """
 
   defmacro __using__(opts) do
@@ -13,27 +16,21 @@ defmodule Coyote.Client do
       @server unquote(opts[:leader]) || Coyote
 
       @name __MODULE__
-      @nodes Application.get_env(:coyote, :leader_node, [:nonode@nohost])
-      @topology Application.get_env(:coyote, :topology, :default)
+      @nodes unquote(opts[:leader_nodes]) ||
+        Application.get_env(:coyote, :leader_nodes, [:nonode@nohost])
+      @topology unquote(opts[:topology]) ||
+        Application.get_env(:coyote, :topology, :default)
 
       def start_link,
         do: GenServer.start_link(__MODULE__, [], name: @name)
 
       def init(_args) do
-        send(self, :register_routes)
+        send(self(), :register_routes)
         {:ok, []}
       end
 
       def handle_info(:register_routes, state) do
-        {mod, binary, file} = get_code()
-
-        route_func = Application.get_env(:coyote, :routes, &mod.__routes__/0)
-
-        Enum.each(@nodes, fn(node) ->
-          send({@server, node}, {:register, {mod, binary, file, route_func, @topology, {self(), Node.self()}}})
-
-          Process.monitor({@server, node})
-        end)
+        Enum.each(@nodes, &register_routes/1)
 
         {:noreply, state}
       end
@@ -41,15 +38,15 @@ defmodule Coyote.Client do
       def handle_info({:watch_leader, node}, state) do
         case Node.ping(node) do
           :pong ->
-            send(self, :register_routes)
+            register_routes(node)
           :pang ->
-            send(self, {:watch_leader, node})
+            send(self(), {:watch_leader, node})
         end
         {:noreply, state}
       end
 
-      def handle_info({:DOWN, _ref, :process, {Coyote, node}, _reason}, state) do
-        send(self, {:watch_leader, node})
+      def handle_info({:DOWN, _ref, :process, {Coyote, node}, reason}, state) do
+        send(self(), {:watch_leader, node})
         {:noreply, state}
       end
 
@@ -71,12 +68,18 @@ defmodule Coyote.Client do
         end
       end
 
-      def handle_info(req, state) when is_tuple(req) do
-        try do
-          cast(req, state)
-        rescue
-          FunctionClauseError ->
-            {:noreply, state}
+      defp register_routes(node) do
+        {mod, binary, file} = get_code()
+
+        route_func = Application.get_env(:coyote, :routes, &mod.__routes__/0)
+
+        case Node.ping(node) do
+          :pong ->
+            send({@server, node}, {:register, {mod, binary, file, route_func, @topology, {self(), Node.self()}}})
+
+            Process.monitor({@server, node})
+          :pang ->
+            :ok
         end
       end
 

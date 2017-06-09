@@ -16,6 +16,8 @@ defmodule Coyote.Supervisor do
     children = [
       supervisor(Coyote.Topology.Supervisor, []),
       worker(Coyote.Route.Events, []),
+      worker(Coyote.Relay, []),
+      supervisor(Coyote.RequestSupervisor, []),
       worker(Coyote.Server, [])
     ] |> include_web_adaptor(@web_enabled)
 

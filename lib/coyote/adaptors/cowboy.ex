@@ -16,7 +16,7 @@ defmodule Coyote.Adaptors.Cowboy do
     do: GenServer.start_link(__MODULE__, args, name: __MODULE__)
 
   def init(args) do
-    send(self, {:start_cowboy, args})
+    send(self(), {:start_cowboy, args})
     {:ok, []}
   end
 

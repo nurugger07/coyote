@@ -26,7 +26,8 @@ defmodule Coyote.Mixfile do
   defp deps do
     [
       {:mime, "~> 1.0"},
-      {:cowboy, "~> 1.1"}
+      {:cowboy, "~> 1.1"},
+      {:gen_stage, "~> 0.11"}
     ]
   end
 

@@ -2,11 +2,11 @@ defmodule Coyote.Adaptors.Cowboy.Handler do
 
   @moduledoc """
 
+  Used to handle cowboy requests
+
   """
 
   @accepted_methods ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTION"]
-
-  @request :cowboy_req
 
   alias :cowboy_req, as: Request
 
@@ -15,21 +15,21 @@ defmodule Coyote.Adaptors.Cowboy.Handler do
   def init(_transport, req, [%{} = info]),
     do: {:ok, req, [info]}
 
-  def handle(req, [info]) do
+  def handle(req, _state) do
     timed_task do
       method = request_method(req)
 
-      {path, _req} = request.path(req)
+      {path, _req} = request().path(req)
 
       bindings = atomize_bindings(req)
 
       headers = [{"content-type", "text/html"}]
 
-      case GenServer.call(Coyote, {method, path, bindings}) do
+      case Coyote.call({method, path, bindings}) do
         {:ok, output} ->
-          request.reply(200, headers, output, req)
+          request().reply(200, headers, output, req)
         {:error, message} ->
-          request.reply(500, headers, message, req)
+          request().reply(500, headers, message, req)
       end
     end
 
@@ -37,9 +37,9 @@ defmodule Coyote.Adaptors.Cowboy.Handler do
   end
 
   defp atomize_bindings(req) do
-    {bindings, _req} = request.bindings(req)
-    {query_string, _req} = request.qs_vals(req)
-    {:ok, body, _req} = request.body_qs(req)
+    {bindings, _req} = request().bindings(req)
+    {query_string, _req} = request().qs_vals(req)
+    {:ok, body, _req} = request().body_qs(req)
 
     body
     |> Enum.into(query_string)
@@ -50,11 +50,8 @@ defmodule Coyote.Adaptors.Cowboy.Handler do
     |> Enum.into(%{})
   end
 
-  defp start_request_worker(mod, req),
-    do: controller.start_child(mod, req)
-
   defp request_method(req),
-    do: request.method(req) |> method_to_atom
+    do: request().method(req) |> method_to_atom
 
   defp method_to_atom({method, _req}) when method in @accepted_methods,
     do: String.upcase(method) |> String.to_atom
@@ -63,6 +60,6 @@ defmodule Coyote.Adaptors.Cowboy.Handler do
     do: :ok
 
   defp request,
-    do: Application.get_env(:coyote, :cowboy_request, @request)
+    do: Application.get_env(:coyote, :cowboy_request, Request)
 
 end

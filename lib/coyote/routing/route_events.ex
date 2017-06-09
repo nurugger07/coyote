@@ -14,16 +14,16 @@ defmodule Coyote.Route.Events do
   def start_link,
     do: GenServer.start_link(__MODULE__, [], name: __MODULE__)
 
-  def handle_info({message, topology}, _state) do
+  def handle_info({_message, topology}, _state) do
     if @web_enabled do
       routes = topology
-      |> route_table.all
+      |> @route_table.all
       |> Enum.map(fn(route) ->
         {method, path} = route.route
         {method, path, route.module}
       end)
 
-      send(adaptor, {:compile_routes, routes})
+      send(@adaptor, {:compile_routes, routes})
     end
     {:noreply, []}
   end
@@ -33,10 +33,5 @@ defmodule Coyote.Route.Events do
     {:noreply, state}
   end
 
-  def route_table,
-    do: Application.get_env(:coyote, :route_table, @route_table)
-
-  def adaptor,
-    do: Application.get_env(:coyote, :adaptor, @adaptor)
 end
 
